@@ -1,0 +1,251 @@
+// SpeakEasy — Prisma Schema
+// CEO-specified entities, verbatim field names and enums
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // URL is provided via prisma.config.ts (env DATABASE_URL)
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum Level {
+  A1
+  A2
+  B1
+}
+
+enum Accent {
+  US
+  UK
+  AU
+  IN
+}
+
+enum QuestionType {
+  FACTUAL
+  INFERENCE
+  PERSONAL
+  REPETITION
+  PARAPHRASE
+}
+
+// ─── Core Entities ────────────────────────────────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  emailVerified    DateTime?
+  name             String?
+  image            String?
+  role             Role      @default(STUDENT)
+  level            Level     @default(A1)
+  nativeLanguage   String?
+  preferredAccent  Accent    @default(US)
+  audioSpeed       Float     @default(1.0)
+  streakCount      Int       @default(0)
+  totalXP          Int       @default(0)
+  lastActiveAt     DateTime?
+  streakFreezes    Int       @default(0)
+  onboardingDone   Boolean   @default(false)
+  badges           Json      @default("[]")
+  isPremium        Boolean   @default(false)
+  premiumUntil     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // NextAuth
+  accounts         Account[]
+  sessions         Session[]
+
+  // Learning
+  lessonAttempts   LessonAttempt[]
+  difficultWords   DifficultWord[]
+  userProgress     UserProgress[]
+  createdLessons   Lesson[]          @relation("LessonCreator")
+
+  // Teacher
+  ownedClasses     Class[]           @relation("ClassOwner")
+  enrolledClasses  ClassEnrollment[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Topic {
+  id        String @id @default(cuid())
+  name      String
+  slug      String @unique
+  icon      String
+  sortOrder Int
+  language  String @default("en")
+
+  lessons      Lesson[]
+  userProgress UserProgress[]
+}
+
+model Lesson {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  level           Level
+  topicId         String
+  passageText     String
+  audioUrl        String?
+  audioUrlUK      String?
+  durationSeconds Int?
+  sortOrder       Int
+  isPublished     Boolean  @default(false)
+  language        String   @default("en")
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  topic          Topic           @relation(fields: [topicId], references: [id])
+  createdBy      User?           @relation("LessonCreator", fields: [createdById], references: [id])
+  lessonAttempts LessonAttempt[]
+}
+
+model LessonAttempt {
+  id                 String   @id @default(cuid())
+  userId             String
+  lessonId           String
+  readingAudioUrl    String?
+  readingTranscript  String?
+  pronunciationScore Float?
+  fluencyScore       Float?
+  comprehensionScore Float?
+  xpEarned           Int      @default(0)
+  readingDurationMs  Int?
+  isComplete         Boolean  @default(false)
+  attemptedAt        DateTime @default(now())
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson            Lesson             @relation(fields: [lessonId], references: [id])
+  questionResponses QuestionResponse[]
+
+  @@index([userId, lessonId])
+}
+
+model QuestionResponse {
+  id                String       @id @default(cuid())
+  attemptId         String
+  questionText      String
+  questionType      QuestionType
+  expectedAnswer    String?
+  studentAudioUrl   String?
+  studentTranscript String?
+  isCorrect         Boolean      @default(false)
+  confidenceScore   Float?
+  aiFeedback        String?
+  correctedVersion  String?
+
+  attempt LessonAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+}
+
+model DifficultWord {
+  id              String    @id @default(cuid())
+  userId          String
+  word            String
+  phonetic        String?
+  correctAudioUrl String?
+  lessonSlug      String?
+  firstSeenAt     DateTime  @default(now())
+  lastPracticedAt DateTime?
+  timesCorrect    Int       @default(0)
+  timesIncorrect  Int       @default(0)
+  interval        Int       @default(1)
+  nextReviewAt    DateTime  @default(now())
+  isMastered      Boolean   @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, word])
+  @@index([userId, nextReviewAt])
+}
+
+model UserProgress {
+  id               String   @id @default(cuid())
+  userId           String
+  topicId          String
+  lessonsCompleted Int      @default(0)
+  avgPronunciation Float    @default(0)
+  avgFluency       Float    @default(0)
+  avgComprehension Float    @default(0)
+  lastActivityAt   DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic Topic @relation(fields: [topicId], references: [id])
+
+  @@unique([userId, topicId])
+  @@index([userId])
+}
+
+// ─── Teacher / Class ──────────────────────────────────────────────────────────
+
+model Class {
+  id          String   @id @default(cuid())
+  name        String
+  joinCode    String   @unique
+  teacherId   String
+  maxStudents Int      @default(50)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  teacher     User              @relation("ClassOwner", fields: [teacherId], references: [id])
+  enrollments ClassEnrollment[]
+}
+
+model ClassEnrollment {
+  id       String   @id @default(cuid())
+  classId  String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, userId])
+}
