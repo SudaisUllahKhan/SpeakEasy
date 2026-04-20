@@ -11,7 +11,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Brand */}
       <div className="flex-shrink-0 flex flex-col items-center justify-center pt-16 pb-10 px-6 relative z-10">
         <div className="w-20 h-20 rounded-[24px] flex items-center justify-center mb-4" style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-          <span style={{ fontSize: 44 }}>🎙️</span>
+          <svg width="38" height="38" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2a4 4 0 014 4v6a4 4 0 01-8 0V6a4 4 0 014-4z" fill="rgba(255,255,255,0.9)"/>
+            <path d="M19 10v1a7 7 0 01-14 0v-1M12 19v4M8 23h8" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
         <h1 className="font-black text-white" style={{ fontSize: 32, letterSpacing: -0.5 }}>SpeakEasy</h1>
         <p className="font-semibold mt-1" style={{ color: 'rgba(147,197,253,0.9)', fontSize: 13 }}>AI English Speaking Practice</p>

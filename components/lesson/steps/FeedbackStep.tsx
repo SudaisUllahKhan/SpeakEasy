@@ -19,9 +19,9 @@ function ScoreTile({ label, score, gradient }: { label: string; score: number | 
   const display = score !== null ? score.toFixed(1) : "—";
   const pct = score !== null ? (score / 10) * 100 : 0;
   return (
-    <div className="flex-1 rounded-2xl bg-white border border-[var(--color-border)] shadow-sm p-4 flex flex-col items-center gap-2">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-muted)]">{label}</span>
-      <span className={`text-3xl font-extrabold bg-gradient-to-br ${gradient} bg-clip-text text-transparent tabular-nums`}>
+    <div className="flex-1 min-w-0 rounded-2xl bg-white border border-[var(--color-border)] shadow-sm p-3 flex flex-col items-center gap-1.5">
+      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-[var(--color-muted)] text-center leading-tight">{label}</span>
+      <span className={`text-2xl sm:text-3xl font-extrabold bg-gradient-to-br ${gradient} bg-clip-text text-transparent tabular-nums`}>
         {display}
       </span>
       <div className="w-full h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">

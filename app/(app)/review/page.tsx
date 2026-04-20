@@ -238,12 +238,47 @@ export default function ReviewPage() {
 
   return (
     <AppShell user={null}>
-      <div className="max-w-lg mx-auto py-6">
-        <div className="px-4 mb-6">
-          <h1 className="text-2xl font-black text-[var(--color-text)]">Word Review</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Spaced repetition — words you find difficult, scheduled just in time.
-          </p>
+      <div className="max-w-lg mx-auto pb-10 px-4 pt-4">
+        {/* ── Hero card ────────────────────────────────────────────────── */}
+        <div
+          className="relative rounded-3xl overflow-hidden mb-5"
+          style={{
+            background: "linear-gradient(140deg, #1A0800 0%, #2D1200 55%, #3D2000 100%)",
+            boxShadow: "0 8px 40px rgba(245,158,11,0.30), 0 2px 8px rgba(0,0,0,0.4)",
+          }}
+        >
+          {/* Amber glow top-right */}
+          <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(251,146,60,0.38), transparent 70%)" }} aria-hidden="true" />
+          {/* Deep red glow bottom-left */}
+          <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(220,38,38,0.25), transparent 70%)" }} aria-hidden="true" />
+
+          <div className="relative px-5 pt-6 pb-5">
+            <div className="flex items-center gap-3 mb-5">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: "linear-gradient(135deg, #F59E0B, #EF4444)", boxShadow: "0 4px 16px rgba(245,158,11,0.40)" }}
+                aria-hidden="true"
+              >
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
+                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-white leading-tight">Word Review</h1>
+                <p className="text-white/45 text-xs mt-0.5">Spaced repetition · right when you need it</p>
+              </div>
+            </div>
+
+            <div
+              className="rounded-2xl px-4 py-3"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+            >
+              <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;Repetition is the mother of learning, the father of action, and the architect of accomplishment.&rdquo;</p>
+              <p className="text-white/30 text-[10px] mt-1 font-medium">— Zig Ziglar</p>
+            </div>
+          </div>
         </div>
 
         {loading ? (

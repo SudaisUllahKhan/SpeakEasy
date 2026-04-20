@@ -19,8 +19,12 @@ interface VoiceOption {
   voice: SpeechSynthesisVoice | null;
   label: string;
   pitch: number;
-  extraRate: number;
+  rate: number;
+  /** If set, this text is spoken instead of passageText (for effects that need preprocessing) */
+  preprocess?: (text: string) => string;
 }
+
+// ─── Voice label ──────────────────────────────────────────────────────────────
 
 function labelVoice(v: SpeechSynthesisVoice): string {
   const n = v.name.toLowerCase();
@@ -29,7 +33,8 @@ function labelVoice(v: SpeechSynthesisVoice): string {
     return n.includes("female") || n.includes("woman") ? "British Female" : "British Male";
   if (n.includes("australia") || l === "en-au") return "Australian";
   if (l === "en-in" || n.includes("india")) return "Indian English";
-  if (n.includes("zira") || n.includes("samantha") || n.includes("victoria") || n.includes("karen") || n.includes("female") || n.includes("woman"))
+  if (n.includes("zira") || n.includes("samantha") || n.includes("victoria") ||
+      n.includes("karen") || n.includes("female") || n.includes("woman"))
     return "American Female";
   if (n.includes("david") || n.includes("mark") || n.includes("fred") || n.includes("alex"))
     return "American Male";
@@ -37,17 +42,82 @@ function labelVoice(v: SpeechSynthesisVoice): string {
   return v.name.replace(/^(Microsoft|Google|Apple)\s+/i, "").split(/\s+/).slice(0, 3).join(" ");
 }
 
-// Pitch-based fun presets — work on all browsers, no extra voice needed
-const FUN_PRESETS = [
-  { label: "Child",       pitch: 1.8,  extraRate: 0.9  },
-  { label: "Cartoon",     pitch: 2.0,  extraRate: 1.05 },
-  { label: "Robot",       pitch: 0.3,  extraRate: 0.78 },
-  { label: "Storyteller", pitch: 1.1,  extraRate: 0.78 },
+// ─── Find best matching voice ─────────────────────────────────────────────────
+
+function pickVoice(
+  all: SpeechSynthesisVoice[],
+  preferFemale: boolean,
+): SpeechSynthesisVoice | null {
+  const en = all.filter((v) => v.lang.toLowerCase().startsWith("en"));
+  if (en.length === 0) return null;
+
+  if (preferFemale) {
+    const f = en.find((v) => {
+      const n = v.name.toLowerCase();
+      return n.includes("female") || n.includes("woman") || n.includes("zira") ||
+             n.includes("samantha") || n.includes("victoria") || n.includes("karen") ||
+             n.includes("aria") || n.includes("jenny") || n.includes("natasha");
+    });
+    if (f) return f;
+  } else {
+    const m = en.find((v) => {
+      const n = v.name.toLowerCase();
+      return n.includes("male") || n.includes("man") || n.includes("david") ||
+             n.includes("mark") || n.includes("ryan") || n.includes("guy") ||
+             n.includes("james") || n.includes("eric") || n.includes("fred");
+    });
+    if (m) return m;
+  }
+  return en[0] ?? null;
+}
+
+// ─── Preset definitions ───────────────────────────────────────────────────────
+// Pitch values stay within 0.6–1.45 — the range that actually affects output
+// across Chrome/Safari/Firefox. Values outside 0.5–1.5 get clamped silently.
+
+interface PresetDef {
+  label: string;
+  pitch: number;
+  rate: number;
+  preferFemale: boolean;
+  preprocess?: (text: string) => string;
+}
+
+const VOICE_PRESETS: PresetDef[] = [
+  {
+    label: "Storyteller",
+    pitch: 0.85,
+    rate: 0.80,
+    preferFemale: false,
+    // Slight extra spacing between sentences feels warm and deliberate
+  },
+  {
+    label: "Bright & Clear",
+    pitch: 1.35,
+    rate: 1.00,
+    preferFemale: true,
+  },
+  {
+    label: "Deep Voice",
+    pitch: 0.65,
+    rate: 0.88,
+    preferFemale: false,
+  },
+  {
+    label: "News Anchor",
+    pitch: 1.10,
+    rate: 1.05,
+    preferFemale: false,
+  },
 ];
+
+// ─── Build voice list ─────────────────────────────────────────────────────────
 
 function buildVoiceList(): VoiceOption[] {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
   const all = window.speechSynthesis.getVoices();
+
+  // Real English voices — deduplicated by label
   const seen = new Set<string>();
   const real: VoiceOption[] = [];
   for (const v of all) {
@@ -55,12 +125,22 @@ function buildVoiceList(): VoiceOption[] {
     const label = labelVoice(v);
     if (seen.has(label)) continue;
     seen.add(label);
-    real.push({ voice: v, label, pitch: 1.0, extraRate: 1.0 });
+    real.push({ voice: v, label, pitch: 1.0, rate: 1.0 });
   }
-  // Fun presets always use null voice so the browser picks its best voice for pitch effects
-  const fun: VoiceOption[] = FUN_PRESETS.map((p) => ({ ...p, voice: null }));
-  return [...real, ...fun];
+
+  // Presets — each one picks the most suitable real voice for its gender preference
+  const presets: VoiceOption[] = VOICE_PRESETS.map((p) => ({
+    voice: pickVoice(all, p.preferFemale),
+    label: p.label,
+    pitch: p.pitch,
+    rate: p.rate,
+    preprocess: p.preprocess,
+  }));
+
+  return [...real, ...presets];
 }
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay, onReady }: ListenStepProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -70,7 +150,7 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
   const [speed, setSpeed] = useState(audioSpeed);
   const [voices, setVoices] = useState<VoiceOption[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption | null>(null);
-  // Ref so speakTTS always reads the latest voice without stale closure
+  // Refs so speakTTS always reads the latest values without stale closure
   const selectedVoiceRef = useRef<VoiceOption | null>(null);
   const speedRef = useRef<number>(audioSpeed);
   const ttsFallback = !audioUrl;
@@ -80,9 +160,12 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
       const opts = buildVoiceList();
       if (opts.length === 0) return;
       setVoices(opts);
-      const pref = opts.find((o) => o.label === "British Female")
-        ?? opts.find((o) => o.label === "American Female")
-        ?? opts[0];
+      // Default: British Female → American Female → first real voice
+      const pref =
+        opts.find((o) => o.label === "British Female") ??
+        opts.find((o) => o.label === "American Female") ??
+        opts.find((o) => !VOICE_PRESETS.some((p) => p.label === o.label)) ??
+        opts[0];
       const v = pref ?? null;
       setSelectedVoice(v);
       selectedVoiceRef.current = v;
@@ -105,9 +188,13 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
     window.speechSynthesis.cancel();
     const v = selectedVoiceRef.current;
     const s = speedRef.current;
-    const utt = new SpeechSynthesisUtterance(lesson.passageText);
+
+    const text = v?.preprocess ? v.preprocess(lesson.passageText) : lesson.passageText;
+    const utt = new SpeechSynthesisUtterance(text);
+
+    // Base rate from user's speed preference, then multiplied by voice preset rate
     const baseRate = s === 0.75 ? 0.82 : s === 1.25 ? 1.12 : 1.0;
-    utt.rate  = baseRate * (v?.extraRate ?? 1.0);
+    utt.rate  = baseRate * (v?.rate ?? 1.0);
     utt.pitch = v?.pitch ?? 1.0;
     utt.lang  = "en-GB";
     if (v?.voice) utt.voice = v.voice;
@@ -115,7 +202,7 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
     utt.onend   = () => { setPlaying(false); setPaused(false); };
     utt.onerror = () => { setPlaying(false); setPaused(false); };
     window.speechSynthesis.speak(utt);
-  }, [lesson.passageText]); // stable — no voice/speed in deps
+  }, [lesson.passageText]); // stable — voice/speed read via refs
 
   const handlePlay = useCallback(() => {
     if (played && replaysUsed >= MAX_REPLAYS) return;
@@ -160,8 +247,11 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
   const handleEnded = useCallback(() => { setPlaying(false); setPaused(false); }, []);
 
   const replaysLeft = MAX_REPLAYS - replaysUsed;
-
   const showVoicePicker = voices.length > 1;
+
+  // Separate real voices from presets for grouping in the select
+  const realVoices = voices.filter((v) => !VOICE_PRESETS.some((p) => p.label === v.label));
+  const presetVoices = voices.filter((v) => VOICE_PRESETS.some((p) => p.label === v.label));
 
   return (
     <div className="flex-1 flex flex-col px-4 pt-5 pb-6 max-w-xl mx-auto w-full gap-4">
@@ -171,7 +261,10 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
 
       {/* Passage card */}
       <div className="rounded-2xl overflow-hidden shadow-sm border border-[var(--color-border)] bg-white">
-        <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] px-5 py-3 flex items-center gap-2">
+        <div
+          className="px-5 py-3 flex items-center gap-2"
+          style={{ background: "linear-gradient(135deg, #7C3AED, #9333EA)" }}
+        >
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/>
             <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
@@ -201,7 +294,7 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
                 setSpeed(s);
                 speedRef.current = s;
                 if (audioRef.current) audioRef.current.playbackRate = s;
-                if (playing && ttsFallback) speakTTS(); // restart TTS at new speed
+                if (playing && ttsFallback) speakTTS();
               }}
               className={[
                 "px-4 py-1.5 rounded-full text-sm font-bold transition-all duration-150 min-w-[54px]",
@@ -228,16 +321,27 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
               onChange={(e) => {
                 const v = voices.find((o) => o.label === e.target.value);
                 if (!v) return;
-                selectedVoiceRef.current = v; // update ref BEFORE calling speakTTS
+                selectedVoiceRef.current = v;
                 setSelectedVoice(v);
-                if (playing || paused) speakTTS(); // restart immediately with new voice
+                if (playing || paused) speakTTS();
               }}
               className="flex-1 text-sm bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl px-3 py-2 text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
               aria-label="Voice"
             >
-              {voices.map(({ label }) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
+              {realVoices.length > 0 && (
+                <optgroup label="System voices">
+                  {realVoices.map(({ label }) => (
+                    <option key={label} value={label}>{label}</option>
+                  ))}
+                </optgroup>
+              )}
+              {presetVoices.length > 0 && (
+                <optgroup label="Voice styles">
+                  {presetVoices.map(({ label }) => (
+                    <option key={label} value={label}>{label}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
         )}
@@ -253,8 +357,13 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
                 "w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-200",
                 replaysLeft <= 0 && played
                   ? "bg-[var(--color-surface-2)] opacity-40 cursor-not-allowed"
-                  : "bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-light)] shadow-lg shadow-[var(--color-primary)]/25 hover:scale-105 active:scale-95",
+                  : "shadow-lg hover:scale-105 active:scale-95",
               ].join(" ")}
+              style={
+                replaysLeft <= 0 && played
+                  ? {}
+                  : { background: "linear-gradient(135deg, #7C3AED, #9333EA)", boxShadow: "0 4px 20px rgba(124,58,237,0.40)" }
+              }
             >
               <svg width="26" height="26" fill="white" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M8 5v14l11-7z"/>
@@ -266,7 +375,8 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
             <button
               onClick={handlePause}
               aria-label="Pause audio"
-              className="w-[72px] h-[72px] rounded-full flex items-center justify-center bg-[var(--color-primary)] shadow-lg shadow-[var(--color-primary)]/25 hover:bg-[var(--color-primary-dark)] active:scale-95 transition-all"
+              className="w-[72px] h-[72px] rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+              style={{ background: "linear-gradient(135deg, #7C3AED, #9333EA)", boxShadow: "0 4px 20px rgba(124,58,237,0.40)" }}
             >
               <span className="flex gap-1.5">
                 <span className="w-[5px] h-6 bg-white rounded-full" />
@@ -279,7 +389,8 @@ export function ListenStep({ lesson, audioUrl, audioSpeed, replaysUsed, onReplay
             <button
               onClick={handleResume}
               aria-label="Resume audio"
-              className="w-[72px] h-[72px] rounded-full flex items-center justify-center bg-gradient-to-br from-[var(--color-accent)] to-[var(--color-accent-light)] shadow-lg shadow-[var(--color-accent)]/25 hover:scale-105 active:scale-95 transition-all"
+              className="w-[72px] h-[72px] rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+              style={{ background: "linear-gradient(135deg, #F97316, #FB923C)", boxShadow: "0 4px 20px rgba(249,115,22,0.40)" }}
             >
               <svg width="26" height="26" fill="white" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M8 5v14l11-7z"/>

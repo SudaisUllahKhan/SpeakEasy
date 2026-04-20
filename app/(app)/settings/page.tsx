@@ -12,10 +12,10 @@ import type { UserProfile, Accent, Level } from "@/types";
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const ACCENT_LABELS: Record<Accent, string> = {
-  US: "🇺🇸 American English",
-  UK: "🇬🇧 British English",
-  AU: "🇦🇺 Australian English",
-  IN: "🇮🇳 Indian English",
+  US: "American English",
+  UK: "British English",
+  AU: "Australian English",
+  IN: "Indian English",
 };
 
 const SPEED_OPTIONS: { value: number; label: string }[] = [
@@ -258,8 +258,48 @@ export default function SettingsPage() {
       )}
 
       <AppShell user={profile}>
-        <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-          <h1 className="text-2xl font-black text-[var(--color-text)]">Settings</h1>
+        <div className="max-w-lg mx-auto pb-10 px-4 pt-4 space-y-5">
+
+          {/* ── Hero card ─────────────────────────────────────────────── */}
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              background: "linear-gradient(140deg, #1A0010 0%, #2D0025 55%, #3D0038 100%)",
+              boxShadow: "0 8px 40px rgba(217,70,239,0.28), 0 2px 8px rgba(0,0,0,0.4)",
+            }}
+          >
+            {/* Fuchsia glow top-right */}
+            <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(circle, rgba(217,70,239,0.32), transparent 70%)" }} aria-hidden="true" />
+            {/* Rose glow bottom-left */}
+            <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(circle, rgba(244,63,94,0.22), transparent 70%)" }} aria-hidden="true" />
+
+            <div className="relative px-5 pt-6 pb-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                  style={{ background: "linear-gradient(135deg, #D946EF, #A855F7)", boxShadow: "0 4px 16px rgba(217,70,239,0.45)" }}
+                  aria-hidden="true"
+                >
+                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-black text-white leading-tight">Settings</h1>
+                  <p className="text-white/45 text-xs mt-0.5">Profile, learning preferences &amp; account</p>
+                </div>
+              </div>
+              <div
+                className="rounded-2xl px-4 py-3"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+              >
+                <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;Personalise your experience — your learning, your way.&rdquo;</p>
+                <p className="text-white/30 text-[10px] mt-1 font-medium">— SpeakEasy</p>
+              </div>
+            </div>
+          </div>
 
           {/* ─── Profile ──────────────────────────────────────────────────────── */}
           <Section title="Profile">
@@ -357,8 +397,9 @@ export default function SettingsPage() {
               Save changes
             </Button>
             {saved && (
-              <Badge variant="success" className="animate-fade-in">
-                Saved ✓
+              <Badge variant="success" className="animate-fade-in flex items-center gap-1">
+                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+                Saved
               </Badge>
             )}
             {saveError && (

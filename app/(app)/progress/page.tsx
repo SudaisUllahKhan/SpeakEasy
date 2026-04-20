@@ -9,6 +9,22 @@ import type { UserProfile } from "@/types";
 
 export const metadata: Metadata = { title: "Progress" };
 
+const PROGRESS_QUOTES = [
+  "You don't have to be great to start — but you have to start to be great.",
+  "Progress is progress, no matter how small.",
+  "Every correct sentence rewires your brain.",
+  "The journey of a thousand words begins with one lesson.",
+];
+
+const TOPIC_GRADS = [
+  "from-violet-500 to-purple-600",
+  "from-rose-500 to-pink-600",
+  "from-orange-500 to-amber-500",
+  "from-teal-500 to-cyan-600",
+  "from-blue-500 to-indigo-600",
+  "from-fuchsia-500 to-violet-600",
+];
+
 export default async function ProgressPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
@@ -61,10 +77,10 @@ export default async function ProgressPage() {
     createdAt: user.createdAt.toISOString(),
   };
 
-  const withPron = recentAttempts.filter((a) => a.pronunciationScore !== null);
+  const withPron  = recentAttempts.filter((a) => a.pronunciationScore !== null);
   const withFluen = recentAttempts.filter((a) => a.fluencyScore !== null);
   const withComp  = recentAttempts.filter((a) => a.comprehensionScore !== null);
-  const avgPronunciation = withPron.length ? withPron.reduce((s, a) => s + (a.pronunciationScore ?? 0), 0) / withPron.length : 0;
+  const avgPronunciation = withPron.length  ? withPron.reduce((s, a) => s + (a.pronunciationScore ?? 0), 0) / withPron.length : 0;
   const avgFluency       = withFluen.length ? withFluen.reduce((s, a) => s + (a.fluencyScore ?? 0), 0) / withFluen.length : 0;
   const avgComprehension = withComp.length  ? withComp.reduce((s, a) => s + (a.comprehensionScore ?? 0), 0) / withComp.length : 0;
 
@@ -78,151 +94,191 @@ export default async function ProgressPage() {
     (p) => (countMap[p.topicId] ?? 0) > 0 && p.lessonsCompleted >= (countMap[p.topicId] ?? 1)
   ).length;
 
-  const TOPIC_GRADS = [
-    "from-indigo-500 to-violet-600", "from-emerald-500 to-teal-600",
-    "from-rose-500 to-pink-600", "from-amber-500 to-orange-600",
-    "from-cyan-500 to-blue-600", "from-purple-500 to-indigo-600",
-  ];
+  const d = new Date();
+  const quote = PROGRESS_QUOTES[(d.getDate() + d.getMonth()) % PROGRESS_QUOTES.length];
 
   return (
     <AppShell user={profile}>
-      <div className="max-w-2xl mx-auto px-4 pt-4 pb-8 space-y-5">
+      <div className="max-w-lg mx-auto pb-10 px-4 pt-4 space-y-5">
 
-        <h1 className="text-2xl font-black text-[var(--color-text)]">Your progress</h1>
+        {/* ── Hero card ────────────────────────────────────────────────── */}
+        <div
+          className="relative rounded-3xl overflow-hidden"
+          style={{
+            background: "linear-gradient(140deg, #0D0A2A 0%, #0A2010 55%, #0F3D1A 100%)",
+            boxShadow: "0 8px 40px rgba(34,197,94,0.25), 0 2px 8px rgba(0,0,0,0.4)",
+          }}
+        >
+          {/* Emerald glow top-right */}
+          <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(34,197,94,0.28), transparent 70%)" }} aria-hidden="true" />
+          {/* Teal glow bottom-left */}
+          <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(6,182,212,0.18), transparent 70%)" }} aria-hidden="true" />
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: user.streakCount, label: "Day streak", grad: "linear-gradient(135deg,#F59E0B,#EF4444)" },
-            { value: totalLessons,     label: "Lessons",    grad: "linear-gradient(135deg,#4F46E5,#6366F1)" },
-            { value: user.totalXP.toLocaleString(), label: "Total XP", grad: "linear-gradient(135deg,#10B981,#059669)" },
-            { value: difficultWordsCount, label: "To review", grad: "linear-gradient(135deg,#EF4444,#DB2777)" },
-            { value: recentAttempts.length, label: "Last 30 days", grad: "linear-gradient(135deg,#06B6D4,#3B82F6)" },
-            { value: masteredTopics,  label: "Topics done", grad: "linear-gradient(135deg,#8B5CF6,#6366F1)" },
-          ].map(({ value, label, grad }) => (
-            <div key={label} className="rounded-2xl p-4 text-center" style={{ background: grad, boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
-              <p className="text-2xl font-extrabold text-white leading-none">{value}</p>
-              <p className="text-[10px] text-white/65 mt-1 font-semibold uppercase tracking-wide">{label}</p>
+          <div className="relative px-5 pt-6 pb-5">
+            <div className="flex items-center gap-3 mb-5">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: "linear-gradient(135deg, #22C55E, #16A34A)", boxShadow: "0 4px 16px rgba(34,197,94,0.45)" }}
+                aria-hidden="true"
+              >
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M18 20V10M12 20V4M6 20v-6"/>
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-white leading-tight">Your Progress</h1>
+                <p className="text-white/45 text-xs mt-0.5">Last 30 days · all time stats</p>
+              </div>
             </div>
-          ))}
+
+            <div
+              className="rounded-2xl px-4 py-3"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+            >
+              <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;{quote}&rdquo;</p>
+              <p className="text-white/30 text-[10px] mt-1 font-medium">— SpeakEasy</p>
+            </div>
+          </div>
         </div>
 
-        {/* Avg scores */}
-        {recentAttempts.length > 0 && (
-          <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden" style={{ boxShadow: "0 2px 8px rgba(79,70,229,0.06)" }}>
-            <div className="px-5 pt-4 pb-2 border-b border-[var(--color-border)]">
-              <h2 className="text-sm font-bold text-[var(--color-text)]">Average scores — last 30 days</h2>
-            </div>
-            <div className="px-5 py-4 space-y-4">
-              {[
-                { label: "Pronunciation", value: avgPronunciation, grad: "from-indigo-500 to-violet-500" },
-                { label: "Fluency",       value: avgFluency,       grad: "from-emerald-500 to-teal-500" },
-                { label: "Comprehension", value: avgComprehension, grad: "from-amber-500 to-orange-500" },
-              ].map(({ label, value, grad }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--color-muted)] w-28 shrink-0">{label}</span>
-                  <div className="flex-1 h-2 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full bg-gradient-to-r ${grad} transition-all duration-700`}
-                      style={{ width: `${Math.round((value / 10) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-bold text-[var(--color-text)] w-8 text-right tabular-nums">
-                    {value > 0 ? value.toFixed(1) : "–"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="px-4 pt-4 space-y-5">
 
-        {/* Topic progress */}
-        {topicProgress.length > 0 && (
-          <section>
-            <h2 className="text-sm font-bold text-[var(--color-text)] mb-3">Topics</h2>
-            <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]" style={{ boxShadow: "0 2px 8px rgba(79,70,229,0.06)" }}>
-              {topicProgress.map((p, idx) => {
-                const total = countMap[p.topicId] ?? 1;
-                const pct   = Math.min(100, Math.round((p.lessonsCompleted / total) * 100));
-                const avg   = p.avgPronunciation > 0
-                  ? ((p.avgPronunciation + p.avgFluency + p.avgComprehension) / 3).toFixed(1)
-                  : null;
-                const grad = TOPIC_GRADS[idx % TOPIC_GRADS.length];
-                return (
-                  <Link key={p.id} href={`/topics/${p.topic.slug}`}>
-                    <div className="flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--color-surface-2)] transition-colors">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shrink-0`} aria-hidden="true">
-                        <span className="text-white font-black text-sm">{p.topic.name.charAt(0)}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[var(--color-text)] truncate">{p.topic.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full bg-gradient-to-r ${grad}`} style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-[11px] text-[var(--color-muted)] shrink-0">{p.lessonsCompleted}/{total}</span>
+          {/* Stats grid */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: user.streakCount,                      label: "Day streak",   grad: "linear-gradient(135deg,#F59E0B,#EF4444)",  shadow: "rgba(249,115,22,0.28)" },
+              { value: totalLessons,                          label: "Lessons",      grad: "linear-gradient(135deg,#7C3AED,#9333EA)",  shadow: "rgba(124,58,237,0.28)" },
+              { value: user.totalXP.toLocaleString(),         label: "Total XP",     grad: "linear-gradient(135deg,#22C55E,#16A34A)",  shadow: "rgba(34,197,94,0.22)"  },
+              { value: difficultWordsCount,                   label: "To review",    grad: "linear-gradient(135deg,#EF4444,#DB2777)",  shadow: "rgba(239,68,68,0.22)"  },
+              { value: recentAttempts.length,                 label: "Last 30 days", grad: "linear-gradient(135deg,#06B6D4,#3B82F6)",  shadow: "rgba(6,182,212,0.22)"  },
+              { value: masteredTopics,                        label: "Topics done",  grad: "linear-gradient(135deg,#A855F7,#7C3AED)",  shadow: "rgba(168,85,247,0.22)" },
+            ].map(({ value, label, grad, shadow }) => (
+              <div key={label} className="rounded-2xl p-4 text-center" style={{ background: grad, boxShadow: `0 4px 16px ${shadow}` }}>
+                <p className="text-2xl font-extrabold text-white leading-none">{value}</p>
+                <p className="text-[10px] text-white/65 mt-1 font-semibold uppercase tracking-wide">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Avg scores */}
+          {recentAttempts.length > 0 && (
+            <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden" style={{ boxShadow: "0 2px 10px rgba(124,58,237,0.08)" }}>
+              <div className="px-5 pt-4 pb-3" style={{ background: "linear-gradient(135deg, #F3EEFF, #EDE8FF)" }}>
+                <h2 className="text-sm font-bold text-[var(--color-text)]">Average scores — last 30 days</h2>
+              </div>
+              <div className="px-5 py-4 space-y-4">
+                {[
+                  { label: "Pronunciation", value: avgPronunciation, grad: "from-violet-500 to-purple-500" },
+                  { label: "Fluency",       value: avgFluency,       grad: "from-teal-500 to-cyan-500"    },
+                  { label: "Comprehension", value: avgComprehension, grad: "from-orange-500 to-amber-500" },
+                ].map(({ label, value, grad }) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="text-xs text-[var(--color-muted)] w-24 shrink-0">{label}</span>
+                    <div className="flex-1 h-2.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${grad} transition-all duration-700`}
+                        style={{ width: `${Math.round((value / 10) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-[var(--color-text)] w-8 text-right tabular-nums">
+                      {value > 0 ? value.toFixed(1) : "–"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Topic progress */}
+          {topicProgress.length > 0 && (
+            <section>
+              <h2 className="text-sm font-bold text-[var(--color-text)] mb-3">Topics</h2>
+              <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]" style={{ boxShadow: "0 2px 10px rgba(124,58,237,0.08)" }}>
+                {topicProgress.map((p, idx) => {
+                  const total = countMap[p.topicId] ?? 1;
+                  const pct   = Math.min(100, Math.round((p.lessonsCompleted / total) * 100));
+                  const avg   = p.avgPronunciation > 0
+                    ? ((p.avgPronunciation + p.avgFluency + p.avgComprehension) / 3).toFixed(1)
+                    : null;
+                  const grad = TOPIC_GRADS[idx % TOPIC_GRADS.length];
+                  return (
+                    <Link key={p.id} href={`/topics/${p.topic.slug}`}>
+                      <div className="flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--color-surface-2)] transition-colors">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shrink-0`} aria-hidden="true">
+                          <span className="text-white font-black text-sm">{p.topic.name.charAt(0)}</span>
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-[var(--color-text)] truncate">{p.topic.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex-1 h-1.5 bg-[var(--color-surface-2)] rounded-full overflow-hidden">
+                              <div className={`h-full rounded-full bg-gradient-to-r ${grad}`} style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[11px] text-[var(--color-muted)] shrink-0">{p.lessonsCompleted}/{total}</span>
+                          </div>
+                        </div>
+                        {avg && (
+                          <span className="text-sm font-bold text-[var(--color-primary)] shrink-0">{avg}</span>
+                        )}
                       </div>
-                      {avg && (
-                        <span className="text-sm font-bold text-[var(--color-primary)] shrink-0">{avg}</span>
-                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Recent activity */}
+          {recentAttempts.length > 0 && (
+            <section>
+              <h2 className="text-sm font-bold text-[var(--color-text)] mb-3">Recent activity</h2>
+              <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]" style={{ boxShadow: "0 2px 10px rgba(124,58,237,0.08)" }}>
+                {recentAttempts.slice(0, 10).map((a, i) => (
+                  <Link key={i} href={`/lessons/${a.lesson.slug}`}>
+                    <div className="flex items-center justify-between px-4 py-3 hover:bg-[var(--color-surface-2)] transition-colors">
+                      <div>
+                        <p className="text-sm font-semibold text-[var(--color-text)]">{a.lesson.title}</p>
+                        <p className="text-xs text-[var(--color-muted)]">
+                          {new Date(a.attemptedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {a.pronunciationScore !== null && (
+                          <span className={[
+                            "text-xs font-bold px-2 py-0.5 rounded-full",
+                            a.pronunciationScore >= 7 ? "bg-emerald-100 text-emerald-700" :
+                            a.pronunciationScore >= 4 ? "bg-amber-100 text-amber-700" :
+                                                        "bg-red-100 text-red-700",
+                          ].join(" ")}>
+                            {a.pronunciationScore.toFixed(1)}
+                          </span>
+                        )}
+                        <Badge variant={a.lesson.level === "A1" ? "a1" : a.lesson.level === "A2" ? "a2" : "b1"}>
+                          {a.lesson.level}
+                        </Badge>
+                      </div>
                     </div>
                   </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
+          )}
 
-        {/* Recent activity */}
-        {recentAttempts.length > 0 && (
-          <section>
-            <h2 className="text-sm font-bold text-[var(--color-text)] mb-3">Recent activity</h2>
-            <div className="rounded-2xl bg-white border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]" style={{ boxShadow: "0 2px 8px rgba(79,70,229,0.06)" }}>
-              {recentAttempts.slice(0, 10).map((a, i) => (
-                <Link key={i} href={`/lessons/${a.lesson.slug}`}>
-                  <div className="flex items-center justify-between px-4 py-3 hover:bg-[var(--color-surface-2)] transition-colors">
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--color-text)]">{a.lesson.title}</p>
-                      <p className="text-xs text-[var(--color-muted)]">
-                        {new Date(a.attemptedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {a.pronunciationScore !== null && (
-                        <span className={[
-                          "text-xs font-bold px-2 py-0.5 rounded-full",
-                          a.pronunciationScore >= 7 ? "bg-emerald-100 text-emerald-700" :
-                          a.pronunciationScore >= 4 ? "bg-amber-100 text-amber-700" :
-                                                      "bg-red-100 text-red-700",
-                        ].join(" ")}>
-                          {a.pronunciationScore.toFixed(1)}
-                        </span>
-                      )}
-                      <Badge variant={a.lesson.level === "A1" ? "a1" : a.lesson.level === "A2" ? "a2" : "b1"}>
-                        {a.lesson.level}
-                      </Badge>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+          {recentAttempts.length === 0 && (
+            <div className="rounded-2xl p-8 text-center" style={{ background: "linear-gradient(135deg, #F3EEFF, #EDE8FF)", border: "1px solid var(--color-border)" }}>
+              <p className="font-bold text-[var(--color-text)] mb-1">No data yet</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-5">Complete lessons to see your progress here.</p>
+              <Link
+                href="/topics"
+                className="inline-flex items-center justify-center h-11 px-8 text-white text-sm font-bold rounded-[var(--radius-button)] transition-all hover:scale-105 active:scale-95"
+                style={{ background: "linear-gradient(135deg, #7C3AED, #9333EA)", boxShadow: "0 4px 16px rgba(124,58,237,0.35)" }}
+              >
+                Start learning
+              </Link>
             </div>
-          </section>
-        )}
-
-        {recentAttempts.length === 0 && (
-          <div className="rounded-2xl p-8 text-center" style={{ background: "linear-gradient(135deg, #F0F2FF, #E8EBFF)", border: "1px solid var(--color-border)" }}>
-            <p className="font-bold text-[var(--color-text)] mb-1">No data yet</p>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-5">Complete lessons to see your progress.</p>
-            <Link
-              href="/topics"
-              className="inline-flex items-center justify-center h-11 px-8 text-white text-sm font-bold rounded-[var(--radius-button)] transition-all hover:scale-105 active:scale-95"
-              style={{ background: "linear-gradient(135deg, #4F46E5, #6366F1)", boxShadow: "0 4px 16px rgba(79,70,229,0.35)" }}
-            >
-              Start learning
-            </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </AppShell>
   );

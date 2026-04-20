@@ -18,8 +18,8 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-nav)] pb-safe"
-      style={{ boxShadow: "0 -1px 0 rgba(255,255,255,0.06), 0 -8px 24px rgba(0,0,0,0.3)" }}
+      className="fixed bottom-0 left-0 right-0 z-40 pb-safe"
+      style={{ background: "var(--color-nav)", boxShadow: "0 -1px 0 rgba(255,255,255,0.06), 0 -8px 32px rgba(0,0,0,0.35)" }}
       aria-label="Main navigation"
     >
       <div className="flex items-center justify-around px-2">
@@ -36,7 +36,7 @@ export function BottomNav() {
               {active && (
                 <span
                   className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-7 rounded-full"
-                  style={{ background: "rgba(99,102,241,0.28)" }}
+                  style={{ background: "rgba(167,139,250,0.32)" }}
                   aria-hidden="true"
                 />
               )}

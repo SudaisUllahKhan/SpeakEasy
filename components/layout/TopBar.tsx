@@ -44,14 +44,14 @@ export function TopBar({
         ) : (
           <Link href="/dashboard" className="flex items-center gap-0.5" aria-label="SpeakEasy home">
             <span className="text-[1.25rem] font-black text-white tracking-tight">Speak</span>
-            <span className="text-[1.25rem] font-black tracking-tight" style={{ color: "#818CF8" }}>Easy</span>
+            <span className="text-[1.25rem] font-black tracking-tight" style={{ color: "#C4B5FD" }}>Easy</span>
           </Link>
         )}
       </div>
 
       {/* Centre title */}
       {title && (
-        <h1 className="absolute left-1/2 -translate-x-1/2 text-sm font-bold text-white/90 truncate max-w-[45%]">
+        <h1 className="absolute left-1/2 -translate-x-1/2 text-sm font-bold text-white/90 truncate max-w-[52%]">
           {title}
         </h1>
       )}

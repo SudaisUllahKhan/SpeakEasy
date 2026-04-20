@@ -42,6 +42,7 @@ export function QuestionsStep({ lesson, attemptId, pronunciationScore, fluencySc
   const [textFallback, setTextFallback] = useState(false);
   const [textAnswer, setTextAnswer] = useState("");
   const [lastFeedback, setLastFeedback] = useState<{ text: string; isCorrect: boolean } | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const finalRef = useRef<string>("");
@@ -49,19 +50,26 @@ export function QuestionsStep({ lesson, attemptId, pronunciationScore, fluencySc
 
   useEffect(() => {
     async function load() {
+      setLoadError(false);
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
         const res = await fetch("/api/lessons/generate-questions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ lessonId: lesson.id, level: lesson.level }),
+          signal: controller.signal,
         });
-        if (!res.ok) throw new Error();
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error("Failed to load questions");
         const data = await res.json() as { questions: GeneratedQuestion[] };
+        if (!data.questions?.length) throw new Error("No questions returned");
         setQuestions(data.questions);
+        setQState("ready");
       } catch {
-        setQuestions([]);
+        setLoadError(true);
+        setQState("ready");
       }
-      setQState("ready");
     }
     load();
   }, [lesson.id, lesson.level]);
@@ -137,7 +145,9 @@ export function QuestionsStep({ lesson, attemptId, pronunciationScore, fluencySc
         setQState("ready");
       }
     } catch {
-      setQState("ready");
+      // Show a gentle error feedback and allow retry
+      setLastFeedback({ text: "Something went wrong evaluating your answer. Please try again.", isCorrect: false });
+      setTimeout(() => { setLastFeedback(null); setQState("ready"); }, 2500);
     }
   }, [currentQuestion, attemptId, responses, qIndex, questions.length, pronunciationScore, fluencyScore, userPrefs.nativeLanguage, lesson.passageText, onComplete]);
 
@@ -252,12 +262,24 @@ export function QuestionsStep({ lesson, attemptId, pronunciationScore, fluencySc
     );
   }
 
-  if (!currentQuestion) {
+  if (loadError || !currentQuestion) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4">
-        <p className="text-[var(--color-text-secondary)]">No questions available.</p>
+      <div className="flex-1 flex flex-col items-center justify-center px-4 gap-5 text-center">
+        <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center" aria-hidden="true">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/>
+          </svg>
+        </div>
+        <div>
+          <p className="font-bold text-[var(--color-text)] mb-1">
+            {loadError ? "Could not load questions" : "No questions available"}
+          </p>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            {loadError ? "Check your connection and try again." : "You can continue to feedback."}
+          </p>
+        </div>
         <Button onClick={() => onComplete({ responses: [], comprehensionScore: 10, difficultWords: [], pronunciationTip: null, xpEarned: 0 })}>
-          Continue
+          Continue anyway
         </Button>
       </div>
     );

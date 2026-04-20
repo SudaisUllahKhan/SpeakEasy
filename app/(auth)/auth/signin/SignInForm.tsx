@@ -41,7 +41,11 @@ export function SignInForm({ isDev, hasGoogle, hasApple, hasMagicLink }: SignInF
   if (sent) {
     return (
       <div className="text-center py-6 space-y-4">
-        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-4xl">📬</div>
+        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/>
+          </svg>
+        </div>
         <div>
           <h2 className="text-xl font-bold text-slate-900">Check your inbox</h2>
           <p className="text-slate-500 text-sm mt-1">Sign-in link sent to <strong className="text-slate-700">{email}</strong></p>
@@ -62,14 +66,14 @@ export function SignInForm({ isDev, hasGoogle, hasApple, hasMagicLink }: SignInF
 
       {isDev && (
         <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-          <span className="text-lg">⚡</span>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#92400E" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           <p className="text-sm text-amber-800"><strong>Dev mode</strong> — any email signs in instantly</p>
         </div>
       )}
 
       {error && (
         <div className="flex items-center gap-2.5 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
-          <span className="text-base">⚠️</span>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
@@ -92,9 +96,9 @@ export function SignInForm({ isDev, hasGoogle, hasApple, hasMagicLink }: SignInF
             type="submit"
             disabled={devLoading}
             className="w-full rounded-2xl py-4 text-base font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-60"
-            style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #F97316)' }}
           >
-            {devLoading ? 'Signing in…' : '⚡ Dev Login (instant)'}
+            {devLoading ? 'Signing in…' : 'Dev Login (instant)'}
           </button>
         )}
 
@@ -105,7 +109,7 @@ export function SignInForm({ isDev, hasGoogle, hasApple, hasMagicLink }: SignInF
             disabled={loading}
             className="w-full rounded-2xl py-4 text-base font-bold text-white shadow-lg shadow-blue-200 transition-all active:scale-[0.98] disabled:opacity-60 grad-primary"
           >
-            {loading ? 'Sending…' : 'Send magic link ✉️'}
+            {loading ? 'Sending…' : 'Send magic link'}
           </button>
         )}
 

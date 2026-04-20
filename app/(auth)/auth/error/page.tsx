@@ -17,7 +17,11 @@ export default function AuthErrorPage() {
 
   return (
     <div className="w-full max-w-sm text-center space-y-5">
-      <div className="text-5xl">😔</div>
+      <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center" aria-hidden="true">
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#EF4444" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+      </div>
       <h1 className="text-2xl font-bold text-gray-900">Sign-in problem</h1>
       <p className="text-gray-600 text-sm">{message}</p>
       <Link
