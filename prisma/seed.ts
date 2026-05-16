@@ -6,7 +6,7 @@ import { resolve } from "path";
 config({ path: resolve(__dirname, "../.env.local") });
 config({ path: resolve(__dirname, "../.env") });
 
-import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
