@@ -23,7 +23,7 @@ export const GET = withErrorHandler(async (req, ctx) => {
   const attempts = await db.lessonAttempt.findMany({
     where: {
       userId,
-      lessonId: { in: lessons.map((l) => l.id) },
+      lessonId: { in: lessons.map((l: { id: string }) => l.id) },
       isComplete: true,
     },
     orderBy: { attemptedAt: 'desc' },

@@ -1,4 +1,6 @@
-import type { Level, WordStatus } from '@prisma/client'
+import type { Level } from '@prisma/client'
+
+export type WordStatus = 'CORRECT' | 'CLOSE' | 'INCORRECT'
 
 // ── Target WPM by level ───────────────────────────────────────────────────────
 export const TARGET_WPM: Record<Level, number> = {
