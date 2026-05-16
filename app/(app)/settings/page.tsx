@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, Suspense } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
@@ -150,6 +150,10 @@ function DeleteAccountDialog({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  return <Suspense><SettingsContent /></Suspense>
+}
+
+function SettingsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
