@@ -1,14 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
 
 // GET — lightweight dashboard data (supplements the server component)
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(req: NextRequest) {
+  const mobileSession = await getMobileSession(req);
+  const webSession = mobileSession ? null : await auth();
+  const userId = mobileSession?.userId ?? webSession?.user?.id;
+
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   const [user, progress, difficultWordsCount] = await Promise.all([
     prisma.user.findUnique({
@@ -24,7 +27,7 @@ export async function GET() {
       where: { userId },
       include: { topic: true },
     }),
-    prisma.difficultWord.count({ where: { userId, isMastered: false } }),
+    prisma.difficultWord.count({ where: { userId, isMastered: false, nextReviewAt: { lte: new Date() } } }),
   ]);
 
   if (!user) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -12,8 +13,9 @@ const SettingsBody = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const mobileSession = await getMobileSession(req);
+  const userId = mobileSession?.userId ?? (await auth())?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -23,7 +25,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const updated = await prisma.user.update({
-    where: { id: session.user.id },
+    where: { id: userId },
     data: body.data,
     select: {
       id: true,

@@ -152,7 +152,7 @@ export default function HomePage() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#FBBF24" aria-hidden="true">
                 <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
               </svg>
-              AI-powered · CEFR A1–B1 · iOS &amp; Android coming soon
+              AI-powered · CEFR A1–B1 · Works on any device
             </div>
 
             <h1 className="text-[1.75rem] sm:text-5xl font-black tracking-tight leading-tight mb-4 sm:mb-6">

@@ -4,22 +4,54 @@ import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import EmailProvider from "next-auth/providers/email";
 import { getServerSession } from "next-auth";
+import { Resend } from "resend";
+import fs from "fs";
+import path from "path";
 import { prisma } from "@/lib/prisma";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const authOptions: NextAuthOptions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
   providers: [
     EmailProvider({
-      server: {
-        host: "smtp.resend.com",
-        port: 465,
-        auth: {
-          user: "resend",
-          pass: process.env.RESEND_API_KEY,
-        },
+      server: "",
+      from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
+      async sendVerificationRequest({ identifier: email, url }) {
+        const key = process.env.RESEND_API_KEY ?? "";
+        const isRealKey = key && !key.startsWith("re_xxx");
+
+        // Dev fallback: log magic link to console + file when no real Resend key is set
+        if (!isRealKey) {
+          const msg = `\n========== MAGIC LINK (dev) ==========\nTo: ${email}\nURL: ${url}\n======================================\n`;
+          console.log(msg);
+          try {
+            const logPath = path.join(process.cwd(), ".magic-link.txt");
+            fs.writeFileSync(logPath, `${new Date().toISOString()}\n${msg}`);
+          } catch { /* ignore write errors */ }
+          return;
+        }
+
+        const fromAddress = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+        const { error } = await resend.emails.send({
+          from: fromAddress,
+          to: [email],
+          subject: "Sign in to SpeakEasy",
+          html: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+              <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">Welcome to SpeakEasy</h1>
+              <p style="font-size: 16px; color: #6B7280; margin-bottom: 32px;">Click the button below to sign in. This link expires in 24 hours.</p>
+              <a href="${url}" style="display:inline-block; background:#6366F1; color:#fff; font-size:16px; font-weight:600; padding:14px 28px; border-radius:8px; text-decoration:none;">Sign in to SpeakEasy</a>
+              <p style="font-size: 13px; color: #9CA3AF; margin-top: 32px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+          `,
+        });
+        if (error) {
+          console.error("[auth] Resend email error:", error);
+          throw new Error(`Failed to send verification email: ${error.message}`);
+        }
       },
-      from: process.env.EMAIL_FROM ?? "noreply@speakeasy.app",
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",

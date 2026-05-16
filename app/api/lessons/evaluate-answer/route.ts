@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -92,8 +93,9 @@ async function evaluateWithGroq(
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const mobileSession = await getMobileSession(req);
+  const userId = mobileSession?.userId ?? (await auth())?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

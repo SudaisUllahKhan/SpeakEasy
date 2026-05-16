@@ -1,14 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getMobileSession } from '@/lib/mobile-auth'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { withErrorHandler, UnauthorizedError, NotFoundError } from '@/lib/errors'
 
-export const GET = withErrorHandler(async (_req, ctx) => {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) throw new UnauthorizedError()
+export const GET = withErrorHandler(async (req, ctx) => {
+  const mobileSession = await getMobileSession(req as NextRequest)
+  const userId = mobileSession?.userId ?? (await getServerSession(authOptions))?.user?.id as string | undefined
+  if (!userId) throw new UnauthorizedError()
 
-  const { slug } = (ctx as { params: { slug: string } }).params
+  const { slug } = await (ctx as { params: Promise<{ slug: string }> }).params
 
   const topic = await db.topic.findUnique({ where: { slug } })
   if (!topic) throw new NotFoundError('Topic')
@@ -18,15 +20,13 @@ export const GET = withErrorHandler(async (_req, ctx) => {
     orderBy: [{ level: 'asc' }, { sortOrder: 'asc' }],
   })
 
-  // Attach best attempt data for the current user
-  const userId = (session.user as { id: string }).id
   const attempts = await db.lessonAttempt.findMany({
     where: {
       userId,
       lessonId: { in: lessons.map((l) => l.id) },
-      completedAt: { not: null },
+      isComplete: true,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { attemptedAt: 'desc' },
   })
 
   const bestByLesson = new Map<
@@ -47,7 +47,6 @@ export const GET = withErrorHandler(async (_req, ctx) => {
   const data = lessons.map((lesson, idx) => {
     const best = bestByLesson.get(lesson.id)
     const completed = !!best
-    // Sequential unlock: first lesson always available, rest unlock after previous is done
     const available = idx === 0 || !!bestByLesson.get(lessons[idx - 1]?.id ?? '')
     return { ...lesson, completed, available, bestScores: best ?? null }
   })

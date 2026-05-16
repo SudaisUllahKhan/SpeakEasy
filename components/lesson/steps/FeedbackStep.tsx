@@ -45,9 +45,20 @@ function speakWord(word: string) {
 
 export function FeedbackStep({
   pronunciationScore, fluencyScore, comprehensionScore,
-  difficultWords, pronunciationTip, questionResponses, xpEarned, onContinue,
+  scoredWords, difficultWords, pronunciationTip, questionResponses, xpEarned, onContinue,
 }: FeedbackStepProps) {
   const correctAnswers = questionResponses.filter((r) => r.isCorrect).length;
+
+  // Derive all mispronounced words directly from scoredWords (not the DB cap)
+  const missedWords = scoredWords.filter((w) => w.label === "MISSED" || w.label === "CLOSE");
+  // Deduplicate by lowercase word
+  const seen = new Set<string>();
+  const uniqueMissed = missedWords.filter((w) => {
+    const key = w.word.toLowerCase().replace(/[^a-z]/g, "");
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -136,29 +147,35 @@ export function FeedbackStep({
           </div>
         )}
 
-        {/* Difficult words */}
-        {difficultWords.length > 0 && (
+        {/* Difficult words — derived from ALL scoredWords, not DB cap */}
+        {uniqueMissed.length > 0 && (
           <div className="rounded-2xl bg-white border border-[var(--color-border)] shadow-sm p-4">
             <p className="text-sm font-bold text-[var(--color-text)] mb-3">
-              Words to practise ({difficultWords.length})
+              Words to practise ({uniqueMissed.length})
             </p>
             <div className="flex flex-wrap gap-2">
-              {difficultWords.map((dw) => (
+              {uniqueMissed.map((w, i) => (
                 <button
-                  key={dw.id}
-                  onClick={() => speakWord(dw.word)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-full text-sm font-medium text-[var(--color-text)] hover:bg-white hover:border-[var(--color-primary)] transition-colors"
-                  aria-label={`Hear pronunciation of ${dw.word}`}
+                  key={i}
+                  onClick={() => speakWord(w.word)}
+                  className={[
+                    "flex items-center gap-1.5 px-3 py-1.5 border rounded-full text-sm font-medium transition-colors",
+                    w.label === "MISSED"
+                      ? "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                      : "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100",
+                  ].join(" ")}
+                  aria-label={`Hear pronunciation of ${w.word}`}
                 >
                   <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                     <path d="M11 5L6 9H2v6h4l5 4V5z"/>
                     <path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/>
                   </svg>
-                  {dw.word}
-                  {dw.phonetic && <span className="text-[var(--color-muted)] text-[10px]">[{dw.phonetic}]</span>}
+                  {w.word}
+                  <span className="text-[10px] opacity-60">{w.label === "MISSED" ? "missed" : "close"}</span>
                 </button>
               ))}
             </div>
+            <p className="text-[11px] text-[var(--color-muted)] mt-3">Tap any word to hear how it should sound.</p>
           </div>
         )}
 

@@ -24,9 +24,12 @@ export default async function TopicPage({ params }: Props) {
   const topic = await prisma.topic.findUnique({ where: { slug } });
   if (!topic) notFound();
 
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { level: true } });
+  const userLevel = (user?.level ?? "A1") as "A1" | "A2" | "B1";
+
   const [lessons, attempts] = await Promise.all([
     prisma.lesson.findMany({
-      where: { topicId: topic.id, isPublished: true },
+      where: { topicId: topic.id, isPublished: true, level: userLevel },
       orderBy: { sortOrder: "asc" },
     }),
     prisma.lessonAttempt.findMany({
@@ -70,7 +73,7 @@ export default async function TopicPage({ params }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-black text-white">{topic.name}</h1>
-              <p className="text-white/50 text-sm mt-0.5">{completedIds.size} of {lessons.length} lessons completed</p>
+              <p className="text-white/50 text-sm mt-0.5">{completedIds.size} of {lessons.length} lessons completed &middot; {userLevel} level</p>
               <div className="mt-2 w-full h-1.5 bg-white/15 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700"

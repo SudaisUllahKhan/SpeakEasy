@@ -71,6 +71,12 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
+  // First-time users: send to settings to choose their level
+  if (!user.onboardingDone) {
+    await prisma.user.update({ where: { id: userId }, data: { onboardingDone: true } });
+    redirect("/settings?welcome=1");
+  }
+
   const topicLessonCountMap = new Map(lessonCounts.map((lc) => [lc.topicId, lc._count.id]));
   const totalLessonsCompleted = progress.reduce((acc, p) => acc + p.lessonsCompleted, 0);
 
@@ -102,101 +108,77 @@ export default async function DashboardPage() {
     <AppShell user={profile}>
       <div className="max-w-lg mx-auto pb-10 px-4 pt-4 space-y-5">
 
-        {/* ══════════════════════════════════════════════════════════════
-            HERO CARD — dark floating card, XP ring centrepiece
-        ══════════════════════════════════════════════════════════════ */}
+        {/* ── Greeting header ────────────────────────────────────────── */}
         <div
-          className="relative rounded-3xl overflow-hidden"
-          style={{
-            background: "linear-gradient(140deg, #0D0A2A 0%, #1A0840 55%, #2D0F5E 100%)",
-            boxShadow: "0 8px 40px rgba(124,58,237,0.35), 0 2px 8px rgba(0,0,0,0.4)",
-          }}
+          className="rounded-3xl px-5 pt-6 pb-5"
+          style={{ background: "linear-gradient(135deg, #F3EEFF 0%, #EDE8FF 100%)", border: "1px solid #E4DAFF" }}
         >
-          {/* Pink/magenta glow orb top-right */}
-          <div
-            className="absolute -top-10 -right-10 w-48 h-48 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(236,72,153,0.30), transparent 70%)" }}
-            aria-hidden="true"
-          />
-          {/* Cyan glow orb bottom-left */}
-          <div
-            className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(6,182,212,0.20), transparent 70%)" }}
-            aria-hidden="true"
-          />
-
-          <div className="relative px-5 pt-6 pb-5">
-            {/* Top row: greeting + level badge */}
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{greeting}</p>
-                <h1 className="text-[2rem] font-black text-white leading-none tracking-tight">{firstName}!</h1>
-                {user.streakCount > 0 && (
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <svg width="13" height="13" fill="#FB923C" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                    </svg>
-                    <span className="text-orange-300 text-xs font-bold">{user.streakCount}-day streak</span>
-                  </div>
-                )}
-              </div>
-              {/* Avatar circle */}
-              <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0"
-                style={{
-                  background: "linear-gradient(135deg, #EC4899, #A855F7)",
-                  boxShadow: "0 0 0 2px rgba(255,255,255,0.12)",
-                }}
-                aria-hidden="true"
+          {/* Top row */}
+          <div className="flex items-start justify-between mb-5">
+            <div>
+              <p className="text-[var(--color-muted)] text-xs font-semibold uppercase tracking-widest mb-1">{greeting}</p>
+              <h1
+                className="text-[2rem] font-black leading-none tracking-tight"
+                style={{ background: "linear-gradient(135deg, #7C3AED, #A855F7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
               >
-                {(user.name ?? user.email).charAt(0).toUpperCase()}
-              </div>
-            </div>
-
-            {/* XP ring + stats row */}
-            <div className="flex items-center gap-5">
-              {/* XP progress ring */}
-              <div className="shrink-0">
-                <ProgressRing
-                  value={xpPct}
-                  size={88}
-                  strokeWidth={7}
-                  color="#FBBF24"
-                  label={`${xpPct}%`}
-                  sublabel="to next"
-                />
-              </div>
-
-              {/* Vertical stats */}
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">Level</p>
-                  <p className="text-white font-black text-lg leading-none mt-0.5">{user.level}
-                    <span className="text-white/40 font-normal text-xs ml-1.5">{user.totalXP.toLocaleString()} XP total</span>
-                  </p>
+                {firstName}!
+              </h1>
+              {user.streakCount > 0 && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <svg width="13" height="13" fill="#F97316" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                  </svg>
+                  <span className="text-[var(--color-accent)] text-xs font-bold">{user.streakCount}-day streak</span>
                 </div>
-                <div className="h-px bg-white/10" />
-                <div className="grid grid-cols-2 gap-x-4">
-                  <div>
-                    <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">Lessons</p>
-                    <p className="text-white font-black text-lg leading-none mt-0.5">{totalLessonsCompleted}</p>
-                  </div>
-                  <div>
-                    <p className="text-white/40 text-[10px] font-semibold uppercase tracking-widest">XP needed</p>
-                    <p className="text-amber-300 font-black text-lg leading-none mt-0.5">{xpToNext}</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
-
-            {/* Quote strip */}
             <div
-              className="mt-5 rounded-2xl px-4 py-3"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0"
+              style={{ background: "linear-gradient(135deg, #7C3AED, #A855F7)", boxShadow: "0 4px 16px rgba(124,58,237,0.30)" }}
+              aria-hidden="true"
             >
-              <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;{quote.text}&rdquo;</p>
-              <p className="text-white/30 text-[10px] mt-1 font-medium">— {quote.attr}</p>
+              {(user.name ?? user.email).charAt(0).toUpperCase()}
             </div>
+          </div>
+
+          {/* XP ring + stats */}
+          <div className="flex items-center gap-5">
+            <div className="shrink-0">
+              <ProgressRing
+                value={xpPct}
+                size={84}
+                strokeWidth={7}
+                color="#7C3AED"
+                label={`${xpPct}%`}
+                sublabel="to next"
+              />
+            </div>
+            <div className="flex-1 space-y-3">
+              <div>
+                <p className="text-[var(--color-muted)] text-[10px] font-semibold uppercase tracking-widest">Level</p>
+                <p className="text-[var(--color-text)] font-black text-lg leading-none mt-0.5">
+                  {user.level}
+                  <span className="text-[var(--color-muted)] font-normal text-xs ml-1.5">{user.totalXP.toLocaleString()} XP</span>
+                </p>
+              </div>
+              <div className="h-px bg-[var(--color-border)]" />
+              <div className="grid grid-cols-2 gap-x-4">
+                <div>
+                  <p className="text-[var(--color-muted)] text-[10px] font-semibold uppercase tracking-widest">Lessons</p>
+                  <p className="text-[var(--color-text)] font-black text-lg leading-none mt-0.5">{totalLessonsCompleted}</p>
+                </div>
+                <div>
+                  <p className="text-[var(--color-muted)] text-[10px] font-semibold uppercase tracking-widest">XP needed</p>
+                  <p className="font-black text-lg leading-none mt-0.5" style={{ color: "#7C3AED" }}>{xpToNext}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quote */}
+          <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
+            <p className="text-[var(--color-text-secondary)] text-[0.82rem] italic leading-snug">&ldquo;{quote.text}&rdquo;</p>
+            <p className="text-[var(--color-muted)] text-[11px] mt-1">— {quote.attr}</p>
           </div>
         </div>
 

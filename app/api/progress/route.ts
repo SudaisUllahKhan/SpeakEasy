@@ -1,13 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+export async function GET(req: NextRequest) {
+  const mobileSession = await getMobileSession(req);
+  const webSession = mobileSession ? null : await auth();
+  const userId = mobileSession?.userId ?? webSession?.user?.id;
+
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

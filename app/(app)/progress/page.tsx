@@ -101,45 +101,34 @@ export default async function ProgressPage() {
     <AppShell user={profile}>
       <div className="max-w-lg mx-auto pb-10 px-4 pt-4 space-y-5">
 
-        {/* ── Hero card ────────────────────────────────────────────────── */}
+        {/* ── Page header ────────────────────────────────────────────── */}
         <div
-          className="relative rounded-3xl overflow-hidden"
-          style={{
-            background: "linear-gradient(140deg, #0D0A2A 0%, #0A2010 55%, #0F3D1A 100%)",
-            boxShadow: "0 8px 40px rgba(34,197,94,0.25), 0 2px 8px rgba(0,0,0,0.4)",
-          }}
+          className="rounded-3xl px-5 pt-6 pb-5"
+          style={{ background: "linear-gradient(135deg, #DCFCE7 0%, #D1FAE5 100%)", border: "1px solid #A7F3D0" }}
         >
-          {/* Emerald glow top-right */}
-          <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(34,197,94,0.28), transparent 70%)" }} aria-hidden="true" />
-          {/* Teal glow bottom-left */}
-          <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(6,182,212,0.18), transparent 70%)" }} aria-hidden="true" />
-
-          <div className="relative px-5 pt-6 pb-5">
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                style={{ background: "linear-gradient(135deg, #22C55E, #16A34A)", boxShadow: "0 4px 16px rgba(34,197,94,0.45)" }}
-                aria-hidden="true"
-              >
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2" strokeLinecap="round">
-                  <path d="M18 20V10M12 20V4M6 20v-6"/>
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-white leading-tight">Your Progress</h1>
-                <p className="text-white/45 text-xs mt-0.5">Last 30 days · all time stats</p>
-              </div>
-            </div>
-
+          <div className="flex items-center gap-3 mb-4">
             <div
-              className="rounded-2xl px-4 py-3"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+              className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ background: "linear-gradient(135deg, #22C55E, #16A34A)", boxShadow: "0 4px 14px rgba(34,197,94,0.35)" }}
+              aria-hidden="true"
             >
-              <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;{quote}&rdquo;</p>
-              <p className="text-white/30 text-[10px] mt-1 font-medium">— SpeakEasy</p>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+                <path d="M18 20V10M12 20V4M6 20v-6"/>
+              </svg>
             </div>
+            <div>
+              <h1
+                className="text-[1.9rem] font-black leading-none tracking-tight"
+                style={{ background: "linear-gradient(135deg, #16A34A, #059669)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              >
+                Your Progress
+              </h1>
+              <p className="text-[var(--color-muted)] text-xs mt-0.5">Last 30 days · all time stats</p>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-green-200">
+            <p className="text-[var(--color-text-secondary)] text-[0.82rem] italic leading-snug">&ldquo;{quote}&rdquo;</p>
+            <p className="text-[var(--color-muted)] text-[11px] mt-1">— SpeakEasy</p>
           </div>
         </div>
 

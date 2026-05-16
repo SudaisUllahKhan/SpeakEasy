@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { nextReviewInterval, addDays } from "@/lib/utils";
 
-// GET — words due for review today (up to 20)
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+// GET — words due for review today (up to 50)
+export async function GET(req: NextRequest) {
+  const mobileSession = await getMobileSession(req);
+  const webSession = mobileSession ? null : await auth();
+  const userId = mobileSession?.userId ?? webSession?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   const words = await prisma.difficultWord.findMany({
     where: {
@@ -18,8 +20,8 @@ export async function GET() {
       isMastered: false,
       nextReviewAt: { lte: new Date() },
     },
-    orderBy: { nextReviewAt: "asc" },
-    take: 20,
+    orderBy: [{ nextReviewAt: "asc" }, { timesIncorrect: "desc" }],
+    take: 50,
   });
 
   return NextResponse.json({ words });
@@ -32,11 +34,12 @@ const ReviewBody = z.object({
 
 // POST — record review result + advance SM-2 interval
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const mobileSession = await getMobileSession(req);
+  const webSession = mobileSession ? null : await auth();
+  const userId = mobileSession?.userId ?? webSession?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const userId = session.user.id;
 
   const body = ReviewBody.safeParse(await req.json().catch(() => null));
   if (!body.success) {

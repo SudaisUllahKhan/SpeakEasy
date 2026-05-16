@@ -239,45 +239,34 @@ export default function ReviewPage() {
   return (
     <AppShell user={null}>
       <div className="max-w-lg mx-auto pb-10 px-4 pt-4">
-        {/* ── Hero card ────────────────────────────────────────────────── */}
+        {/* ── Page header ────────────────────────────────────────────── */}
         <div
-          className="relative rounded-3xl overflow-hidden mb-5"
-          style={{
-            background: "linear-gradient(140deg, #1A0800 0%, #2D1200 55%, #3D2000 100%)",
-            boxShadow: "0 8px 40px rgba(245,158,11,0.30), 0 2px 8px rgba(0,0,0,0.4)",
-          }}
+          className="rounded-3xl px-5 pt-6 pb-5 mb-5"
+          style={{ background: "linear-gradient(135deg, #FEF3C7 0%, #FFEDD5 100%)", border: "1px solid #FDE68A" }}
         >
-          {/* Amber glow top-right */}
-          <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(251,146,60,0.38), transparent 70%)" }} aria-hidden="true" />
-          {/* Deep red glow bottom-left */}
-          <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(220,38,38,0.25), transparent 70%)" }} aria-hidden="true" />
-
-          <div className="relative px-5 pt-6 pb-5">
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                style={{ background: "linear-gradient(135deg, #F59E0B, #EF4444)", boxShadow: "0 4px 16px rgba(245,158,11,0.40)" }}
-                aria-hidden="true"
-              >
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
-                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-white leading-tight">Word Review</h1>
-                <p className="text-white/45 text-xs mt-0.5">Spaced repetition · right when you need it</p>
-              </div>
-            </div>
-
+          <div className="flex items-center gap-3 mb-4">
             <div
-              className="rounded-2xl px-4 py-3"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+              className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ background: "linear-gradient(135deg, #F59E0B, #F97316)", boxShadow: "0 4px 14px rgba(245,158,11,0.35)" }}
+              aria-hidden="true"
             >
-              <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;Repetition is the mother of learning, the father of action, and the architect of accomplishment.&rdquo;</p>
-              <p className="text-white/30 text-[10px] mt-1 font-medium">— Zig Ziglar</p>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+              </svg>
             </div>
+            <div>
+              <h1
+                className="text-[1.9rem] font-black leading-none tracking-tight"
+                style={{ background: "linear-gradient(135deg, #D97706, #EA580C)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+              >
+                Word Review
+              </h1>
+              <p className="text-[var(--color-muted)] text-xs mt-0.5">Spaced repetition · right when you need it</p>
+            </div>
+          </div>
+          <div className="pt-4 border-t border-amber-200">
+            <p className="text-[var(--color-text-secondary)] text-[0.82rem] italic leading-snug">&ldquo;Repetition is the mother of learning, the father of action, and the architect of accomplishment.&rdquo;</p>
+            <p className="text-[var(--color-muted)] text-[11px] mt-1">— Zig Ziglar</p>
           </div>
         </div>
 

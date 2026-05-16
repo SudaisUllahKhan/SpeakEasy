@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -152,6 +152,8 @@ function DeleteAccountDialog({
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isWelcome = searchParams.get("welcome") === "1";
   const [isPending, startTransition] = useTransition();
 
   // Form state
@@ -260,44 +262,50 @@ export default function SettingsPage() {
       <AppShell user={profile}>
         <div className="max-w-lg mx-auto pb-10 px-4 pt-4 space-y-5">
 
-          {/* ── Hero card ─────────────────────────────────────────────── */}
-          <div
-            className="relative rounded-3xl overflow-hidden"
-            style={{
-              background: "linear-gradient(140deg, #1A0010 0%, #2D0025 55%, #3D0038 100%)",
-              boxShadow: "0 8px 40px rgba(217,70,239,0.28), 0 2px 8px rgba(0,0,0,0.4)",
-            }}
-          >
-            {/* Fuchsia glow top-right */}
-            <div className="absolute -top-8 -right-8 w-44 h-44 rounded-full pointer-events-none"
-              style={{ background: "radial-gradient(circle, rgba(217,70,239,0.32), transparent 70%)" }} aria-hidden="true" />
-            {/* Rose glow bottom-left */}
-            <div className="absolute -bottom-8 -left-6 w-36 h-36 rounded-full pointer-events-none"
-              style={{ background: "radial-gradient(circle, rgba(244,63,94,0.22), transparent 70%)" }} aria-hidden="true" />
+          {/* ── Welcome banner (first login only) ───────────────────────── */}
+          {isWelcome && (
+            <div
+              className="rounded-2xl px-5 py-4 flex items-start gap-3"
+              style={{ background: "linear-gradient(135deg,#F0FDF4,#DCFCE7)", border: "1px solid #86EFAC" }}
+            >
+              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="3" strokeLinecap="round"><path d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <p className="font-bold text-emerald-800">Welcome to SpeakEasy!</p>
+                <p className="text-sm text-emerald-700 mt-0.5">Set your English level and preferences below, then tap <strong>Save changes</strong> to get started.</p>
+              </div>
+            </div>
+          )}
 
-            <div className="relative px-5 pt-6 pb-5">
-              <div className="flex items-center gap-3 mb-5">
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                  style={{ background: "linear-gradient(135deg, #D946EF, #A855F7)", boxShadow: "0 4px 16px rgba(217,70,239,0.45)" }}
-                  aria-hidden="true"
-                >
-                  <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-black text-white leading-tight">Settings</h1>
-                  <p className="text-white/45 text-xs mt-0.5">Profile, learning preferences &amp; account</p>
-                </div>
-              </div>
+          {/* ── Page header ─────────────────────────────────────────────── */}
+          <div
+            className="rounded-3xl px-5 pt-6 pb-5"
+            style={{ background: "linear-gradient(135deg, #FDF2FF 0%, #FAE8FF 100%)", border: "1px solid #E9D5FF" }}
+          >
+            <div className="flex items-center gap-3 mb-4">
               <div
-                className="rounded-2xl px-4 py-3"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+                className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{ background: "linear-gradient(135deg, #D946EF, #A855F7)", boxShadow: "0 4px 14px rgba(217,70,239,0.32)" }}
+                aria-hidden="true"
               >
-                <p className="text-white/75 text-[0.8rem] italic leading-snug">&ldquo;Personalise your experience — your learning, your way.&rdquo;</p>
-                <p className="text-white/30 text-[10px] mt-1 font-medium">— SpeakEasy</p>
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
               </div>
+              <div>
+                <h1
+                  className="text-[1.9rem] font-black leading-none tracking-tight"
+                  style={{ background: "linear-gradient(135deg, #A855F7, #D946EF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+                >
+                  Settings
+                </h1>
+                <p className="text-[var(--color-muted)] text-xs mt-0.5">Profile, learning preferences &amp; account</p>
+              </div>
+            </div>
+            <div className="pt-4 border-t border-purple-100">
+              <p className="text-[var(--color-text-secondary)] text-[0.82rem] italic leading-snug">&ldquo;Personalise your experience — your learning, your way.&rdquo;</p>
+              <p className="text-[var(--color-muted)] text-[11px] mt-1">— SpeakEasy</p>
             </div>
           </div>
 

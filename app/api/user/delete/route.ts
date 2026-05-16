@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getMobileSession } from "@/lib/mobile-auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-
-const Body = z.object({ confirm: z.literal("DELETE") });
 
 export async function DELETE(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const mobileSession = await getMobileSession(req);
+  const userId = mobileSession?.userId ?? (await auth())?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const body = Body.safeParse(await req.json().catch(() => null));
-  if (!body.success) {
-    return NextResponse.json(
-      { error: "Type DELETE to confirm account deletion" },
-      { status: 400 }
-    );
-  }
-
-  const userId = session.user.id;
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { email: true, name: true },
