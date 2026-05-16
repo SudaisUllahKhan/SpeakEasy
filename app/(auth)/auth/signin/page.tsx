@@ -1,4 +1,4 @@
-// Server component — safely reads env vars and passes flags down
+import { Suspense } from 'react'
 import { SignInForm } from './SignInForm'
 
 export default function SignInPage() {
@@ -21,11 +21,13 @@ export default function SignInPage() {
     !process.env.RESEND_API_KEY.startsWith('re_xxx')
 
   return (
-    <SignInForm
-      isDev={isDev}
-      hasGoogle={hasGoogle}
-      hasApple={hasApple}
-      hasMagicLink={hasMagicLink}
-    />
+    <Suspense>
+      <SignInForm
+        isDev={isDev}
+        hasGoogle={hasGoogle}
+        hasApple={hasApple}
+        hasMagicLink={hasMagicLink}
+      />
+    </Suspense>
   )
 }

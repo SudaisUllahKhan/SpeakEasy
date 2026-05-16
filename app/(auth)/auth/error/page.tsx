@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
 const ERROR_MESSAGES: Record<string, string> = {
   Configuration: 'There is a problem with the server configuration.',
@@ -10,7 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   Default: 'Something went wrong. Please try signing in again.',
 }
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error') ?? 'Default'
   const message = ERROR_MESSAGES[error] ?? ERROR_MESSAGES.Default
@@ -31,5 +32,13 @@ export default function AuthErrorPage() {
         Back to sign in
       </Link>
     </div>
+  )
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense>
+      <AuthErrorContent />
+    </Suspense>
   )
 }
