@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY ?? "re_placeholder");
 
 export const authOptions: NextAuthOptions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const fromAddress = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
-        const { error } = await resend.emails.send({
+        const { error } = await getResend().emails.send({
           from: fromAddress,
           to: [email],
           subject: "Sign in to SpeakEasy",
