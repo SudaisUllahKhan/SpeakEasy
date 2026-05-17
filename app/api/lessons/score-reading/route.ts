@@ -116,7 +116,8 @@ async function handleFormData(req: NextRequest, userId: string): Promise<NextRes
     const wpm = Math.round((actualWords.length / durationSec) * 60);
     let pauseCount = 0;
     for (let i = 1; i < whisperWords.length; i++) {
-      if (whisperWords[i].start - whisperWords[i - 1].end > 2) pauseCount++;
+      // Only count pauses > 3s — natural sentence/breath pauses are ≤ 3s
+      if (whisperWords[i].start - whisperWords[i - 1].end > 3) pauseCount++;
     }
     const fluencyScore = calcFluencyScore(wpm, level, pauseCount);
 

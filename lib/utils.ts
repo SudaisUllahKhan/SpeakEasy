@@ -46,12 +46,13 @@ export function calcFluencyScore(
   const target = WPM_TARGET[level];
   const ratio = wordsPerMinute / target;
   let score = 10;
-  // penalise pauses > 2s
-  score -= pauseCount * 0.5;
-  // penalise rushing > 50% above target
-  if (ratio > 1.5) score -= (ratio - 1.5) * 5;
-  // penalise too slow
-  if (ratio < 0.7) score -= (0.7 - ratio) * 10;
+  // Only penalise pauses counted as > 3s (natural sentence pauses ≤ 3s are fine)
+  // -0.3 per long pause, capped at -2 total
+  score -= Math.min(2, pauseCount * 0.3);
+  // Penalise rushing only if > 60% above target
+  if (ratio > 1.6) score -= (ratio - 1.6) * 5;
+  // Penalise only very slow reading (< 55% of target), gently
+  if (ratio < 0.55) score -= (0.55 - ratio) * 8;
   return Math.max(1, Math.min(10, Math.round(score * 10) / 10));
 }
 
