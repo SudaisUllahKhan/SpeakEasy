@@ -31,14 +31,20 @@ Generate exactly ${totalCount} questions based strictly on the passage above. Us
 Question types to generate:
 ${typeInstructions}
 
-Rules:
-- FACTUAL: Ask about specific facts directly stated in the passage. Keep under 10 words.
-- INFERENCE: Ask the student to reason about why something happened or what it implies.
+STRICT RULES — follow every rule or the questions will be rejected:
+- FACTUAL: Ask about specific facts directly stated in the passage. Keep under 10 words. NEVER ask about a person's name if the name appears in the very first sentence (the name is already obvious). Ask about ACTIONS, PLACES, AGES, JOBS, or EVENTS — not names.
+- INFERENCE: Ask the student to reason about why something happened or what it implies. Must require thinking, not just reading.
 - PERSONAL: Ask for the student's own opinion or experience. Set expectedAnswer to null.
 - PARAPHRASE: Ask the student to restate the main idea in their own words.
+- NEVER generate a question whose answer is the very first word or name in the passage.
+- NEVER ask "What is [Person]'s name?" if [Person] introduces themselves in the text.
 - Every question must relate to THIS specific passage — no generic questions.
-- For A1 level: use very simple vocabulary (he, she, it, what, where, who).
+- Questions must be MEANINGFUL — a student should need to read and understand the passage to answer.
+- For A1 level: use very simple vocabulary (what, where, how old, what job).
 - Never ask the same question twice.
+
+BAD example (never do this): passage starts "My name is Sara" → question "What is Sara's name?" ← REJECTED, trivially obvious
+GOOD example: passage says "I am twenty-two years old" → question "How old is Sara?" ← GOOD, requires reading
 
 Respond with valid JSON only:
 {
