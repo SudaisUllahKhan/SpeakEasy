@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
   }
 
   const voice = VOICE_MAP[voiceId] ?? VOICE_MAP.standard;
-  const rate = speedParam >= 2 ? "+90%" : speedParam >= 1.5 ? "+50%" : (voice.rate ?? "0%");
+  const pct = Math.round((speedParam - 1) * 100);
+  const rate = pct >= 0 ? `+${pct}%` : `${pct}%`;
   const pitch = voice.pitch ?? "0%";
 
   const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
