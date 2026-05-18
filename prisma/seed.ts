@@ -3,6 +3,8 @@
 
 import { config } from "dotenv";
 import { resolve } from "path";
+import { fileURLToPath } from "url";
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 config({ path: resolve(__dirname, "../.env.local") });
 config({ path: resolve(__dirname, "../.env") });
 
@@ -20,7 +22,7 @@ const prisma = new PrismaClient({ adapter });
 const TOPICS = [
   { name: "Greetings & Introductions", slug: "greetings",     icon: "👋", sortOrder: 1 },
   { name: "Daily Routine",             slug: "daily-routine", icon: "☀️", sortOrder: 2 },
-  { name: "Family",                    slug: "family",        icon: "👨‍👩‍👧", sortOrder: 3 },
+  { name: "Family",                    slug: "family",        icon: "🏡", sortOrder: 3 },
   { name: "Food & Drink",              slug: "food-drink",    icon: "🍽️", sortOrder: 4 },
   { name: "School & Work",             slug: "school-work",   icon: "🏫", sortOrder: 5 },
   { name: "Travel & Transport",        slug: "travel",        icon: "✈️", sortOrder: 6 },
