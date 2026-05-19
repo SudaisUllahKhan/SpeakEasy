@@ -11,10 +11,26 @@ function GoogleAuthInner() {
   useEffect(() => {
     async function startOAuth() {
       try {
-        const res = await fetch("/api/auth/csrf");
-        const { csrfToken } = (await res.json()) as { csrfToken: string };
+        // Step 1: get CSRF token and sign out any existing web session.
+        // Chrome Custom Tabs shares cookies with the system browser, so if a
+        // previous user signed in and then only signed out in the app (not the
+        // browser), the stale next-auth.session-token cookie would cause
+        // mobile-token to return the wrong user's token.
+        const csrfRes = await fetch("/api/auth/csrf");
+        const { csrfToken } = (await csrfRes.json()) as { csrfToken: string };
 
-        // Build callbackUrl — include mobileRedirect so mobile-token knows where to send the token
+        await fetch("/api/auth/signout", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({ csrfToken, callbackUrl: "/" }),
+        });
+
+        // Step 2: fetch a fresh CSRF token (the signout invalidates the old one)
+        const freshCsrfRes = await fetch("/api/auth/csrf");
+        const { csrfToken: freshCsrf } = (await freshCsrfRes.json()) as { csrfToken: string };
+
+        // Step 3: build callbackUrl — include mobileRedirect so mobile-token
+        // knows which scheme to redirect to (exp:// in Expo Go, speakeasy:// standalone)
         const mobileTokenUrl = new URL("/api/auth/mobile-token", window.location.origin);
         if (mobileRedirect) mobileTokenUrl.searchParams.set("mobileRedirect", mobileRedirect);
 
@@ -31,7 +47,7 @@ function GoogleAuthInner() {
           form.appendChild(input);
         };
 
-        addInput("csrfToken", csrfToken);
+        addInput("csrfToken", freshCsrf);
         addInput("callbackUrl", mobileTokenUrl.toString());
 
         document.body.appendChild(form);
