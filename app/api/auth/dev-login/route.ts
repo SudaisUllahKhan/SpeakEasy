@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
-// DEV ONLY — remove before production
+// DEV / E2E only — blocked in production unless E2E_SECRET matches
 export async function POST(req: NextRequest) {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available" }, { status: 403 });
+  const serverSecret = process.env.E2E_SECRET;
+  const isDev = process.env.NODE_ENV === "development";
+  if (!isDev) {
+    if (!serverSecret) return NextResponse.json({ error: "Not available" }, { status: 403 });
+    const clientSecret = req.headers.get("x-e2e-secret");
+    if (clientSecret !== serverSecret) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { email } = (await req.json()) as { email?: string };
