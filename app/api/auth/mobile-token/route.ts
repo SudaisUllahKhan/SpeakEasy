@@ -4,9 +4,13 @@ import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
+  // In production NextAuth sets __Secure-next-auth.session-token (HTTPS only).
+  // Always read the secure cookie first — it's the one just set by the OAuth flow.
+  // The non-secure next-auth.session-token may be a stale cookie from a previous
+  // web-app login by a different user still sitting in Chrome's cookie jar.
   const sessionToken =
-    cookieStore.get("next-auth.session-token")?.value ??
-    cookieStore.get("__Secure-next-auth.session-token")?.value;
+    cookieStore.get("__Secure-next-auth.session-token")?.value ??
+    cookieStore.get("next-auth.session-token")?.value;
 
   if (!sessionToken) {
     return NextResponse.redirect(new URL("/login?error=no_session", req.url));
