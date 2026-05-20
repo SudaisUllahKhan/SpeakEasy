@@ -8,6 +8,7 @@ const ALLOWED_DEV_EMAILS = new Set([
   "test@speakeasy.test",
   "sudais.khan@consult-first.com",
   "sudaiskhan1@gmail.com",
+  "muneeb.iqbal@consult-first.com",
 ]);
 
 export async function POST(req: NextRequest) {
