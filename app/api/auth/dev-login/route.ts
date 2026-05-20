@@ -2,19 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
-// DEV / E2E only — blocked in production unless E2E_SECRET matches
+// Dev / testing — allowed in all environments for designated test emails
+const ALLOWED_DEV_EMAILS = new Set([
+  "dev@speakeasy.test",
+  "test@speakeasy.test",
+  "sudais.khan@consult-first.com",
+  "sudaiskhan1@gmail.com",
+]);
+
 export async function POST(req: NextRequest) {
   const serverSecret = process.env.E2E_SECRET;
   const isDev = process.env.NODE_ENV === "development";
-  if (!isDev) {
-    if (!serverSecret) return NextResponse.json({ error: "Not available" }, { status: 403 });
-    const clientSecret = req.headers.get("x-e2e-secret");
-    if (clientSecret !== serverSecret) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const { email } = (await req.json()) as { email?: string };
   if (!email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
+  // Allow in dev, or for designated test emails, or with a valid E2E secret
+  const isAllowedEmail = ALLOWED_DEV_EMAILS.has(email.toLowerCase());
+  const hasValidSecret = serverSecret && req.headers.get("x-e2e-secret") === serverSecret;
+  if (!isDev && !isAllowedEmail && !hasValidSecret) {
+    return NextResponse.json({ error: "Not available" }, { status: 403 });
   }
 
   try {
